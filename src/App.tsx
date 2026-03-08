@@ -1,16 +1,16 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Html5QrcodeScanner } from 'html5-qrcode';
 import QRCode from 'qrcode';
-import { 
-  Ticket, 
-  Plus, 
-  Scan, 
-  List, 
-  CheckCircle2, 
-  XCircle, 
-  Loader2, 
-  User, 
-  Mail, 
+import {
+  Ticket,
+  Plus,
+  Scan,
+  List,
+  CheckCircle2,
+  XCircle,
+  Loader2,
+  User,
+  Mail,
   Calendar,
   ArrowLeft,
   Download
@@ -87,7 +87,7 @@ export default function App() {
         body: JSON.stringify({ ticketId }),
       });
       const data = await res.json();
-      
+
       if (res.ok) {
         setScanResult({ success: true, message: data.message, ticket: data.ticket });
         fetchTickets();
@@ -110,19 +110,19 @@ export default function App() {
             </div>
             <h1 className="text-xl font-semibold tracking-tight">EventPass</h1>
           </div>
-          
+
           <nav className="flex items-center gap-2 bg-[#E4E3E0] p-1 rounded-xl">
-            <NavButton 
-              active={view === 'list'} 
-              onClick={() => setView('list')} 
-              icon={<List size={18} />} 
-              label="Tickets" 
+            <NavButton
+              active={view === 'list'}
+              onClick={() => setView('list')}
+              icon={<List size={18} />}
+              label="Ticket"
             />
-            <NavButton 
-              active={view === 'scan'} 
-              onClick={() => setView('scan')} 
-              icon={<Scan size={18} />} 
-              label="Scanner" 
+            <NavButton
+              active={view === 'scan'}
+              onClick={() => setView('scan')}
+              icon={<Scan size={18} />}
+              label="Scanner"
             />
           </nav>
         </div>
@@ -143,7 +143,7 @@ export default function App() {
                   <h2 className="text-2xl font-semibold serif italic">Attendee List</h2>
                   <p className="text-sm text-black/50">Manage your event guests and tickets</p>
                 </div>
-                <button 
+                <button
                   onClick={() => setView('create')}
                   className="bg-black text-white px-4 py-2 rounded-xl flex items-center gap-2 hover:bg-black/80 transition-colors"
                 >
@@ -183,7 +183,7 @@ export default function App() {
               exit={{ opacity: 0, scale: 0.95 }}
               className="max-w-md mx-auto"
             >
-              <button 
+              <button
                 onClick={() => setView('list')}
                 className="mb-6 flex items-center gap-2 text-sm font-medium text-black/50 hover:text-black transition-colors"
               >
@@ -202,10 +202,10 @@ export default function App() {
                     <label className="text-xs font-bold uppercase tracking-wider text-black/40 ml-1">Full Name</label>
                     <div className="relative">
                       <User className="absolute left-4 top-1/2 -translate-y-1/2 text-black/20" size={18} />
-                      <input 
+                      <input
                         required
                         name="name"
-                        type="text" 
+                        type="text"
                         placeholder="e.g. Jane Doe"
                         className="w-full bg-[#F5F5F0] border-none rounded-2xl py-4 pl-12 pr-4 focus:ring-2 focus:ring-black/5 outline-none transition-all"
                       />
@@ -216,17 +216,17 @@ export default function App() {
                     <label className="text-xs font-bold uppercase tracking-wider text-black/40 ml-1">Email Address</label>
                     <div className="relative">
                       <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-black/20" size={18} />
-                      <input 
+                      <input
                         required
                         name="email"
-                        type="email" 
+                        type="email"
                         placeholder="jane@example.com"
                         className="w-full bg-[#F5F5F0] border-none rounded-2xl py-4 pl-12 pr-4 focus:ring-2 focus:ring-black/5 outline-none transition-all"
                       />
                     </div>
                   </div>
 
-                  <button 
+                  <button
                     type="submit"
                     className="w-full bg-black text-white py-4 rounded-2xl font-semibold hover:bg-black/80 transition-all flex items-center justify-center gap-2"
                   >
@@ -253,7 +253,7 @@ export default function App() {
 
               <div className="relative aspect-square max-w-sm mx-auto bg-black rounded-3xl overflow-hidden border-4 border-white shadow-xl">
                 <Scanner onScan={handleCheckIn} />
-                
+
                 {/* Scanner Overlay */}
                 <div className="absolute inset-0 pointer-events-none flex items-center justify-center">
                   <div className="w-64 h-64 border-2 border-white/30 rounded-2xl relative">
@@ -261,9 +261,9 @@ export default function App() {
                     <div className="absolute top-0 right-0 w-8 h-8 border-t-4 border-r-4 border-white rounded-tr-lg"></div>
                     <div className="absolute bottom-0 left-0 w-8 h-8 border-b-4 border-l-4 border-white rounded-bl-lg"></div>
                     <div className="absolute bottom-0 right-0 w-8 h-8 border-b-4 border-r-4 border-white rounded-br-lg"></div>
-                    
+
                     {/* Scanning Line Animation */}
-                    <motion.div 
+                    <motion.div
                       animate={{ top: ['0%', '100%', '0%'] }}
                       transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
                       className="absolute left-0 right-0 h-0.5 bg-white shadow-[0_0_15px_rgba(255,255,255,0.8)]"
@@ -280,8 +280,8 @@ export default function App() {
                     exit={{ opacity: 0, scale: 0.9 }}
                     className={cn(
                       "p-6 rounded-3xl border flex items-start gap-4 shadow-lg",
-                      scanResult.success 
-                        ? "bg-emerald-50 border-emerald-200 text-emerald-900" 
+                      scanResult.success
+                        ? "bg-emerald-50 border-emerald-200 text-emerald-900"
                         : "bg-rose-50 border-rose-200 text-rose-900"
                     )}
                   >
@@ -301,7 +301,7 @@ export default function App() {
                         </div>
                       )}
                     </div>
-                    <button 
+                    <button
                       onClick={() => setScanResult(null)}
                       className="text-sm font-bold uppercase tracking-wider opacity-40 hover:opacity-100 transition-opacity"
                     >
@@ -367,13 +367,13 @@ function TicketCard({ ticket }: { ticket: TicketData; key?: string }) {
         <div className="flex items-center gap-3">
           <div className={cn(
             "px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest",
-            ticket.status === 'checked_in' 
-              ? "bg-emerald-500/10 text-emerald-600 border border-emerald-500/20" 
+            ticket.status === 'checked_in'
+              ? "bg-emerald-500/10 text-emerald-600 border border-emerald-500/20"
               : "bg-black/5 text-black/40 border border-black/10"
           )}>
             {ticket.status === 'checked_in' ? 'Checked In' : 'Pending'}
           </div>
-          <button 
+          <button
             onClick={() => setShowQr(!showQr)}
             className="p-2 hover:bg-[#F5F5F0] rounded-xl transition-colors text-black/40 hover:text-black"
           >
@@ -409,8 +409,8 @@ function TicketCard({ ticket }: { ticket: TicketData; key?: string }) {
                     <p className="text-sm text-emerald-700">{new Date(ticket.checked_in_at).toLocaleString()}</p>
                   </div>
                 )}
-                <a 
-                  href={qrUrl} 
+                <a
+                  href={qrUrl}
                   download={`ticket-${ticket.attendee_name.replace(/\s+/g, '-').toLowerCase()}.png`}
                   className="inline-flex items-center gap-2 text-sm font-semibold bg-white px-4 py-2 rounded-xl border border-black/10 hover:bg-white/80 transition-colors"
                 >
