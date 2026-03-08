@@ -1,0 +1,7 @@
+{
+  "name": "Remix: EventPass Ticket Manager",
+  "description": "A comprehensive ticket management system with QR code generation and real-time check-in scanning.",
+  "requestFramePermissions": [
+    "camera"
+  ]
+}

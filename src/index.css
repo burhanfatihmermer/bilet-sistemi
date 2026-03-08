@@ -1,0 +1,45 @@
+@import "tailwindcss";
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Cormorant+Garamond:ital,wght@1,600&family=JetBrains+Mono:wght@400;500&display=swap');
+
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+}
+
+.serif {
+  font-family: 'Cormorant Garamond', serif;
+}
+
+/* Custom styles for html5-qrcode-scanner to match our UI */
+#reader {
+  border: none !important;
+}
+
+#reader__scan_region {
+  background: black !important;
+}
+
+#reader__dashboard {
+  padding: 1rem !important;
+  background: white !important;
+}
+
+#reader__dashboard_section_csr button {
+  background: black !important;
+  color: white !important;
+  border-radius: 0.75rem !important;
+  padding: 0.5rem 1rem !important;
+  font-size: 0.875rem !important;
+  font-weight: 500 !important;
+  border: none !important;
+  cursor: pointer !important;
+}
+
+#reader__dashboard_section_csr button:hover {
+  opacity: 0.8 !important;
+}
+
+#reader video {
+  object-fit: cover !important;
+  border-radius: 1.5rem !important;
+}
