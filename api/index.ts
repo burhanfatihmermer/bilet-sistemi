@@ -54,6 +54,38 @@ app.post("/api/tickets", (req, res) => {
   }
 });
 
+// Admin: Bulk Insert Tickets
+app.post("/api/tickets/bulk", (req, res) => {
+  const { tickets } = req.body;
+  if (!Array.isArray(tickets)) {
+    return res.status(400).json({ error: "Format hatası. Liste 'tickets' anahtarı altında bir dizi (array) olmalıdır." });
+  }
+
+  const insertTicket = db.prepare(
+    "INSERT OR IGNORE INTO tickets (id, attendee_name, email) VALUES (?, ?, ?)"
+  );
+
+  const insertMany = db.transaction((ticketsArray: any[]) => {
+    let insertedCount = 0;
+    for (const t of ticketsArray) {
+      // Required fields
+      if (t.id && t.attendee_name && t.email) {
+        const info = insertTicket.run(t.id, t.attendee_name, t.email);
+        if (info.changes > 0) insertedCount++;
+      }
+    }
+    return insertedCount;
+  });
+
+  try {
+    const insertedCount = insertMany(tickets);
+    res.status(201).json({ message: "Toplu ekleme başarılı", insertedCount });
+  } catch (error) {
+    console.error("Bulk Insert Error:", error);
+    res.status(500).json({ error: "Biletler eklenirken bir veritabanı hatası oluştu" });
+  }
+});
+
 app.post("/api/tickets/check-in", (req, res) => {
   const { ticketId } = req.body;
   if (!ticketId) {

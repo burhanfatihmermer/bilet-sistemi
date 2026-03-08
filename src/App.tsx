@@ -8,12 +8,15 @@ import {
   List,
   CheckCircle2,
   XCircle,
+  AlertCircle,
   Loader2,
   User,
   Mail,
   Calendar,
   ArrowLeft,
-  Download
+  Download,
+  Settings,
+  Upload
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { clsx, type ClassValue } from 'clsx';
@@ -32,14 +35,14 @@ interface TicketData {
   checked_in_at: string | null;
 }
 
-type View = 'list' | 'create' | 'scan';
+type View = 'list' | 'create' | 'scan' | 'admin';
 
 export default function App() {
   const [view, setView] = useState<View>('list');
   const [tickets, setTickets] = useState<TicketData[]>([]);
   const [loading, setLoading] = useState(true);
   const [scanning, setScanning] = useState(false);
-  const [scanResult, setScanResult] = useState<{ success: boolean; message: string; ticket?: TicketData } | null>(null);
+  const [scanResult, setScanResult] = useState<{ status: 'success' | 'warning' | 'error'; message: string; ticket?: any } | null>(null);
 
   useEffect(() => {
     fetchTickets();
@@ -89,13 +92,51 @@ export default function App() {
       const data = await res.json();
 
       if (res.ok) {
-        setScanResult({ success: true, message: data.message, ticket: data.ticket });
+        setScanResult({ status: 'success', message: "Geçerli Bilet - Onaylandı", ticket: data.ticket });
         fetchTickets();
+      } else if (res.status === 400 && data.error === "Already checked in") {
+        const timeStr = new Date(data.checked_in_at).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' });
+        setScanResult({ 
+          status: 'warning', 
+          message: `Bu bilet daha önce saat ${timeStr}'de kullanılmış!`, 
+          ticket: { attendee_name: data.attendee_name } 
+        });
       } else {
-        setScanResult({ success: false, message: data.error, ticket: data.ticket });
+        setScanResult({ status: 'error', message: "Hata: Sistemde böyle bir bilet bulunamadı veya bu etkinliğe ait değil." });
+      }
+
+      // 3 saniye sonra ekranı otomatik temizle (Sürekli okutma için)
+      setTimeout(() => setScanResult(null), 3000);
+
+    } catch (err) {
+      setScanResult({ status: 'error', message: 'Ağ bağlantısı hatası!' });
+      setTimeout(() => setScanResult(null), 3000);
+    }
+  };
+
+  const handleBulkUpload = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const formData = new FormData(e.currentTarget);
+    const jsonText = formData.get('jsonText') as string;
+
+    try {
+      const ticketsArray = JSON.parse(jsonText);
+      const res = await fetch('/api/tickets/bulk', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ tickets: ticketsArray }),
+      });
+      const data = await res.json();
+      
+      if (res.ok) {
+        alert(`${data.insertedCount} bilet başarıyla eklendi!`);
+        await fetchTickets();
+        setView('list');
+      } else {
+        alert(`Hata: ${data.error}`);
       }
     } catch (err) {
-      setScanResult({ success: false, message: 'Network error during check-in' });
+      alert("Geçersiz JSON formatı. Lütfen kontrol edip tekrar deneyin.");
     }
   };
 
@@ -123,6 +164,12 @@ export default function App() {
               onClick={() => setView('scan')}
               icon={<Scan size={18} />}
               label="Scanner"
+            />
+            <NavButton
+              active={view === 'admin'}
+              onClick={() => setView('admin')}
+              icon={<Settings size={18} />}
+              label="Admin"
             />
           </nav>
         </div>
@@ -280,23 +327,33 @@ export default function App() {
                     exit={{ opacity: 0, scale: 0.9 }}
                     className={cn(
                       "p-6 rounded-3xl border flex items-start gap-4 shadow-lg",
-                      scanResult.success
+                      scanResult.status === 'success'
                         ? "bg-emerald-50 border-emerald-200 text-emerald-900"
+                        : scanResult.status === 'warning'
+                        ? "bg-amber-50 border-amber-200 text-amber-900"
                         : "bg-rose-50 border-rose-200 text-rose-900"
                     )}
                   >
                     <div className={cn(
                       "w-12 h-12 rounded-full flex items-center justify-center shrink-0",
-                      scanResult.success ? "bg-emerald-500 text-white" : "bg-rose-500 text-white"
+                      scanResult.status === 'success' ? "bg-emerald-500 text-white" :
+                      scanResult.status === 'warning' ? "bg-amber-500 text-white" :
+                      "bg-rose-500 text-white"
                     )}>
-                      {scanResult.success ? <CheckCircle2 size={24} /> : <XCircle size={24} />}
+                      {scanResult.status === 'success' ? <CheckCircle2 size={24} /> :
+                       scanResult.status === 'warning' ? <AlertCircle size={24} /> :
+                       <XCircle size={24} />}
                     </div>
                     <div className="flex-1 space-y-1">
-                      <h3 className="font-bold text-lg">{scanResult.success ? 'Access Granted' : 'Access Denied'}</h3>
+                      <h3 className="font-bold text-lg">
+                        {scanResult.status === 'success' ? 'Başarılı' :
+                         scanResult.status === 'warning' ? 'Uyarı' :
+                         'Hata'}
+                      </h3>
                       <p className="text-sm opacity-80">{scanResult.message}</p>
-                      {scanResult.ticket && (
+                      {scanResult.ticket && scanResult.ticket.attendee_name && (
                         <div className="mt-3 pt-3 border-t border-black/5 space-y-1">
-                          <p className="text-xs font-bold uppercase tracking-wider opacity-40">Attendee</p>
+                          <p className="text-xs font-bold uppercase tracking-wider opacity-40">Katılımcı</p>
                           <p className="font-medium">{scanResult.ticket.attendee_name}</p>
                         </div>
                       )}
@@ -305,11 +362,70 @@ export default function App() {
                       onClick={() => setScanResult(null)}
                       className="text-sm font-bold uppercase tracking-wider opacity-40 hover:opacity-100 transition-opacity"
                     >
-                      Dismiss
+                      Kapat
                     </button>
                   </motion.div>
                 )}
               </AnimatePresence>
+            </motion.div>
+          )}
+
+          {view === 'admin' && (
+            <motion.div
+              key="admin"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              className="max-w-2xl mx-auto space-y-6"
+            >
+              <div className="flex items-center gap-3 mb-6">
+                <div className="w-12 h-12 bg-black rounded-2xl flex items-center justify-center text-white">
+                  <Settings size={24} />
+                </div>
+                <div>
+                  <h2 className="text-2xl font-semibold">Admin Paneli</h2>
+                  <p className="text-sm text-black/50">Toplu Bilet Yükleme Modülü</p>
+                </div>
+              </div>
+
+              <div className="bg-white rounded-3xl p-8 border border-black/5 shadow-sm space-y-6">
+                <div className="bg-amber-50 text-amber-900 p-4 rounded-2xl border border-amber-200">
+                  <h3 className="font-bold flex items-center gap-2 mb-2">
+                    <AlertCircle size={18} /> Format Bilgisi
+                  </h3>
+                  <p className="text-sm opacity-90 mb-2">Yüklenecek bilet verisi aşağıdaki gibi bir <strong>JSON dizisi (array)</strong> olmalıdır. Aynı ID'ye sahip biletler atlanır.</p>
+                  <pre className="text-xs bg-white p-3 rounded-lg overflow-x-auto border border-amber-200/50">
+{`[
+  {
+    "id": "Özel-QR-Degeri-1",
+    "attendee_name": "Ahmet Yılmaz",
+    "email": "ahmet@ornek.com"
+  }
+]`}
+                  </pre>
+                </div>
+
+                <form onSubmit={handleBulkUpload} className="space-y-4">
+                  <div className="space-y-2">
+                    <label className="text-xs font-bold uppercase tracking-wider text-black/40 ml-1">JSON Verisi</label>
+                    <textarea
+                      required
+                      name="jsonText"
+                      rows={10}
+                      placeholder="JSON dizisini buraya yapıştırın..."
+                      className="w-full bg-[#F5F5F0] border-none rounded-2xl p-4 font-mono text-sm focus:ring-2 focus:ring-black/5 outline-none transition-all resize-y"
+                    />
+                  </div>
+
+                  <button
+                    type="submit"
+                    className="w-full bg-black text-white py-4 rounded-2xl font-semibold hover:bg-black/80 transition-all flex items-center justify-center gap-2"
+                  >
+                    <Upload size={20} />
+                    <span>Biletleri Sisteme Yükle</span>
+                  </button>
+                </form>
+              </div>
             </motion.div>
           )}
         </AnimatePresence>
